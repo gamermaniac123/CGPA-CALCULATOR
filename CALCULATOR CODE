@@ -1,0 +1,115 @@
+#include <iostream>
+#include <iomanip>
+#include <vector>
+#include <map>
+#include <string>
+using namespace std;
+
+double gradeToPoint(string grade) {
+    map<string, double> gradeMap;
+    gradeMap["A+"] = 10;
+    gradeMap["A"]  = 9;
+    gradeMap["B+"] = 8;
+    gradeMap["B"]  = 7;
+    gradeMap["C+"] = 6;
+    gradeMap["C"]  = 5;
+    gradeMap["D"]  = 4;
+    gradeMap["F"]  = 0;
+
+    if (gradeMap.find(grade) != gradeMap.end()) {
+        return gradeMap[grade];
+    } else {
+        cout << "Invalid grade '" << grade << "'. Defaulting to 0.\n";
+        return 0;
+    }
+}
+
+struct Course {
+    string name;
+    string grade;
+    int credit;
+    double gradePoint;
+};
+
+struct Semester {
+    vector<Course> courses;
+    double GPA;
+};
+double calculateGPA(vector<Course>& courses) {
+    double totalPoints = 0;
+    int totalCredits = 0;
+
+    for (int i = 0; i < courses.size(); i++) {
+        double gp = gradeToPoint(courses[i].grade);
+        courses[i].gradePoint = gp;
+        totalPoints += gp * courses[i].credit;
+        totalCredits += courses[i].credit;
+    }
+
+    if (totalCredits == 0) return 0;
+    return totalPoints / totalCredits;
+}
+
+int main() {
+    int numSemesters;
+    cout << "Enter number of semesters: ";
+    cin >> numSemesters;
+
+    vector<Semester> semesters;
+    double overallPoints = 0;
+    int overallCredits = 0;
+
+    for (int sem = 0; sem < numSemesters; sem++) {
+        Semester s;
+        int numCourses;
+        cout << "\n--- Semester " << sem + 1 << " ---\n";
+        cout << "Enter number of courses in this semester: ";
+        cin >> numCourses;
+
+        for (int i = 0; i < numCourses; i++) {
+            Course c;
+            cin.ignore(); // clear newline
+            cout << "Course " << i + 1 << " name: ";
+            getline(cin, c.name);
+            cout << "Grade (A+, A, B+, etc.): ";
+            cin >> c.grade;
+            cout << "Credit Hours: ";
+            cin >> c.credit;
+
+            s.courses.push_back(c);
+        }
+
+        s.GPA = calculateGPA(s.courses);
+        semesters.push_back(s);
+
+        for (int j = 0; j < s.courses.size(); j++) {
+            overallPoints += s.courses[j].gradePoint * s.courses[j].credit;
+            overallCredits += s.courses[j].credit;
+        }
+    }
+
+
+    cout << "\n===== GPA Summary =====\n";
+    for (int i = 0; i < semesters.size(); i++) {
+        cout << "\nSemester " << i + 1 << ":\n";
+        cout << left << setw(20) << "Course"
+             << setw(10) << "Grade"
+             << setw(10) << "Credits"
+             << setw(15) << "Grade Points" << endl;
+        cout << string(55, '-') << endl;
+
+        for (int j = 0; j < semesters[i].courses.size(); j++) {
+            cout << left << setw(20) << semesters[i].courses[j].name
+                 << setw(10) << semesters[i].courses[j].grade
+                 << setw(10) << semesters[i].courses[j].credit
+                 << setw(15) << fixed << setprecision(2) << semesters[i].courses[j].gradePoint << endl;
+        }
+
+        cout << "Semester GPA: " << fixed << setprecision(2) << semesters[i].GPA << "\n";
+    }
+
+    double finalCGPA = (overallCredits == 0) ? 0 : overallPoints / overallCredits;
+    cout << "\n===== Final CGPA: " << fixed << setprecision(2) << finalCGPA << " =====\n";
+
+    return 0;
+}
